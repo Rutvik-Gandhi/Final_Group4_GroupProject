@@ -1,0 +1,66 @@
+package com.nihar.final_group4_groupproject.other;
+
+import static java.lang.Math.min;
+
+import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapShader;
+import android.graphics.Canvas;
+import android.graphics.Paint;
+import android.graphics.Shader;
+
+import androidx.annotation.NonNull;
+
+import com.bumptech.glide.load.engine.bitmap_recycle.BitmapPool;
+import com.bumptech.glide.load.resource.bitmap.BitmapTransformation;
+
+import java.security.MessageDigest;
+
+/**
+ * Created by Lincoln on 10/03/16.
+ */
+public class CircleTransform extends BitmapTransformation {
+    private static final String ID = "com.nihar.final_group4_groupproject.other.CircleTransform";
+    private static final byte[] ID_BYTES = ID.getBytes();
+
+    public CircleTransform(Context context) {
+        super();
+    }
+
+    @Override
+    protected Bitmap transform(@NonNull BitmapPool pool, @NonNull Bitmap toTransform, int outWidth, int outHeight) {
+        return circleCrop(pool, toTransform);
+    }
+
+    private Bitmap circleCrop(@NonNull BitmapPool pool, @NonNull Bitmap source) {
+        if (source == null) return null;
+        int size = min(source.getWidth(), source.getHeight());
+        int x = (source.getWidth() - size) / 2;
+        int y = (source.getHeight() - size) / 2;
+
+        // TODO this could be acquired from the pool too
+        Bitmap squared = Bitmap.createBitmap(source, x, y, size, size);
+
+        Bitmap result = pool.get(size, size, Bitmap.Config.ARGB_8888);
+
+        if (result == null) {
+            result = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888);
+        }
+
+        Canvas canvas = new Canvas(result);
+        Paint paint = new Paint();
+
+        paint.setShader(new BitmapShader(squared, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP));
+        paint.setAntiAlias(true);
+
+        float r = size / 2f;
+        canvas.drawCircle(r, r, r, paint);
+
+        return result;
+    }
+
+    @Override
+    public void updateDiskCacheKey(@NonNull MessageDigest messageDigest) {
+        messageDigest.update(ID_BYTES);
+    }
+}
